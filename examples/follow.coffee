@@ -1,32 +1,11 @@
 # List following and followers from several accounts
 
 users= [
-  'sencha'
-  'aconran'
-  'adityabansod'
-  'arnebech',
   'ariyahidayat'
-  'bmoeskau'
-  'darrellmeyer'
-  'DavidKaneda'
-  'donovanerba'
-  'edspencer'
-  'evantrimboli'
-  'ExtAnimal'
-  'jamespearce'
-  'jamieavins'
-  'jarrednicholls'
-  'jayrobinson'
-  'lojjic'
-  'luckymethod'
-  'merrells'
-  'mmullany'
-  'philogb'
-  'philstrong'
-  'rdougan'
-  'SubtleGradient'
-  'tmaintz'
-  'whereisthysting'
+  'detronizator'
+  'KDABQt'
+  'lfranchi'
+  'jonleighton'
   ]
 
 follow = (user, callback) ->

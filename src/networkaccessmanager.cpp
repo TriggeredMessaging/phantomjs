@@ -98,9 +98,40 @@ void NetworkAccessManager::setPassword(const QString &password)
     m_password = password;
 }
 
-// protected:
-QNetworkReply *NetworkAccessManager::createRequest(Operation op, const QNetworkRequest & req, QIODevice * outgoingData)
+void NetworkAccessManager::setCustomHeaders(const QVariantMap &headers)
 {
+    m_customHeaders = headers;
+}
+
+QVariantMap NetworkAccessManager::customHeaders() const
+{
+    return m_customHeaders;
+}
+
+// protected:
+QNetworkReply *NetworkAccessManager::createRequest(Operation op, const QNetworkRequest & request, QIODevice * outgoingData)
+{
+    QNetworkRequest req(request);
+
+    // Get the URL string before calling the superclass. Seems to work around
+    // segfaults in Qt 4.8: https://gist.github.com/1430393
+    QByteArray url = req.url().toEncoded();
+
+    // http://code.google.com/p/phantomjs/issues/detail?id=337
+    if (op == QNetworkAccessManager::PostOperation) {
+        QString contentType = req.header(QNetworkRequest::ContentTypeHeader).toString();
+        if (contentType.isEmpty()) {
+            req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+        }
+    }
+
+    // set custom HTTP headers
+    QVariantMap::const_iterator i = m_customHeaders.begin();
+    while (i != m_customHeaders.end()) {
+        req.setRawHeader(i.key().toAscii(), i.value().toByteArray());
+        ++i;
+    }
+
     // Pass duty to the superclass - Nothing special to do here (yet?)
     QNetworkReply *reply = QNetworkAccessManager::createRequest(op, req, outgoingData);
     if(m_ignoreSslErrors) {
@@ -120,7 +151,7 @@ QNetworkReply *NetworkAccessManager::createRequest(Operation op, const QNetworkR
 
     QVariantMap data;
     data["id"] = m_idCounter;
-    data["url"] = req.url().toString();
+    data["url"] = url.data();
     data["method"] = toString(op);
     data["headers"] = headers;
     data["time"] = QDateTime::currentDateTime();
@@ -152,7 +183,7 @@ void NetworkAccessManager::handleStarted()
     QVariantMap data;
     data["stage"] = "start";
     data["id"] = m_ids.value(reply);
-    data["url"] = reply->url().toString();
+    data["url"] = reply->url().toEncoded().data();
     data["status"] = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     data["statusText"] = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute);
     data["contentType"] = reply->header(QNetworkRequest::ContentTypeHeader);
@@ -177,7 +208,7 @@ void NetworkAccessManager::handleFinished(QNetworkReply *reply)
     QVariantMap data;
     data["stage"] = "end";
     data["id"] = m_ids.value(reply);
-    data["url"] = reply->url().toString();
+    data["url"] = reply->url().toEncoded().data();
     data["status"] = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     data["statusText"] = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute);
     data["contentType"] = reply->header(QNetworkRequest::ContentTypeHeader);
