@@ -156,10 +156,12 @@ bool Phantom::execute()
         return false;
 
     if (m_config.scriptFile().isEmpty()) {
+        printConsoleMessage("Starting REPL...");
         // REPL mode requested
         // Create the REPL: it will launch itself, no need to store this variable.
         REPL::getInstance(m_page->mainFrame(), this);
     } else {
+        printConsoleMessage("Loading User Script");
         // Load the User Script
         if (m_config.debug()) {
             // Debug enabled
@@ -169,6 +171,7 @@ bool Phantom::execute()
             }
             m_page->showInspector(m_config.remoteDebugPort());
         } else {
+
             if (!Utils::injectJsInFrame(m_config.scriptFile(), m_scriptFileEnc, QDir::currentPath(), m_page->mainFrame(), true)) {
                 m_returnValue = -1;
                 return false;
@@ -237,6 +240,20 @@ QObject* Phantom::createWebServer()
 //     page->setLibraryPath(QFileInfo(m_config.scriptFile()).dir().absolutePath());
     return server;
 }
+
+QString Phantom::getStdinLine()
+{
+    std::string instr;
+    while(true) {
+        int ch = std::cin.get();
+        if (ch == '\n' || ch == EOF)
+            break;
+        instr.push_back(static_cast<char>(ch));
+    }
+    return QString(instr.c_str());
+}
+
+
 
 QObject *Phantom::createFilesystem()
 {
@@ -340,15 +357,4 @@ void Phantom::initCompletions()
 }
 
 
-QString Phantom::getStdinLine()
-{
-    std::string instr;
-    while(true) {
-        int ch = std::cin.get();
-        if (ch == '\n' || ch == EOF)
-            break;
-        instr.push_back(static_cast<char>(ch));
-    }
-    return QString(instr.c_str());
-}
 

@@ -54,12 +54,6 @@ function require(name) {
     }
 }
 
-
-window.getStdinLine = function() {
-	return phantom.getStdinLine();
-}
-
-
 (function() {
     var handler;
     var signal = phantom.page.javaScriptErrorSent;
@@ -93,3 +87,7 @@ phantom.onError = phantom.defaultErrorHandler;
 
 // Legacy way to use WebPage
 window.WebPage = require('webpage').create;
+
+window.stdinLine = function() {
+        return phantom.getStdinLine();
+}
